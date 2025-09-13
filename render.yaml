@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: amfi-matching-backend
+    env: node
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+
+  - type: static
+    name: amfi-matching-frontend
+    buildCommand: echo "No build required - static files"
+    staticPublishPath: ./frontend
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /dashboard.html

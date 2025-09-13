@@ -1,0 +1,19 @@
+{
+  "name": "amfi-matching-backend",
+  "version": "1.0.0",
+  "description": "Backend for AmFi Matching System",
+  "main": "src/server-mock.js",
+  "scripts": {
+    "build": "echo 'No build required for mock server'",
+    "dev": "node src/server-mock.js",
+    "start": "node src/server-mock.js",
+    "mock": "node src/server-mock.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

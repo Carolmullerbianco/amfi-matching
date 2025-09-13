@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AmFi Matching - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #8B5CF6, #EC4899);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #8B5CF6;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logout-btn {
+            background: #f3f4f6;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #e5e7eb;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: white;
+            border-radius: 10px 10px 0 0;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .nav-tab {
+            padding: 1rem 2rem;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+            flex: 1;
+            text-align: center;
+        }
+
+        .nav-tab.active {
+            background: white;
+            color: #8B5CF6;
+            font-weight: bold;
+        }
+
+        .nav-tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab-content {
+            background: white;
+            min-height: 60vh;
+            border-radius: 0 0 10px 10px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #8B5CF6, #EC4899);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            opacity: 0.9;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .data-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .data-table tr:hover {
+            background: #f9fafb;
+        }
+
+        .match-score {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .match-score.high {
+            background: #10b981;
+        }
+
+        .match-score.medium {
+            background: #f59e0b;
+        }
+
+        .match-score.low {
+            background: #ef4444;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #6b7280;
+        }
+
+        .error {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 5px;
+            border: 1px solid #fecaca;
+            margin-bottom: 1rem;
+        }
+
+        .currency {
+            font-weight: 600;
+            color: #059669;
+        }
+
+        .add-btn {
+            background: linear-gradient(135deg, #8B5CF6, #EC4899);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+        }
+
+        .add-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border: none;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #8B5CF6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .btn-cancel {
+            background: #f3f4f6;
+            color: #374151;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #8B5CF6, #EC4899);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn-cancel:hover {
+            background: #e5e7eb;
+        }
+
+        .btn-save:hover {
+            opacity: 0.9;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-edit,
+        .btn-delete {
+            padding: 0.25rem 0.5rem;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .btn-edit {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #2563eb;
+        }
+
+        .btn-delete:hover {
+            background: #dc2626;
+        }
+
+        /* Estilos para paginação e filtros */
+        .table-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            gap: 1rem;
+        }
+
+        .search-box {
+            flex: 1;
+            max-width: 300px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+
+        .items-per-page {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .items-per-page select {
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 5px;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding: 1rem 0;
+        }
+
+        .pagination button {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            background: white;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: all 0.2s;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #f3f4f6;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination button.active {
+            background: linear-gradient(135deg, #8B5CF6, #EC4899);
+            color: white;
+            border-color: #8B5CF6;
+        }
+
+        .pagination-info {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin: 0 1rem;
+        }
+
+        .table-container {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .data-table {
+            width: 100%;
+            min-width: 800px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 0 -1rem;
+            padding: 0 1rem;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 2rem;
+            color: #6b7280;
+        }
+
+        .sort-header {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+
+        .sort-header:hover {
+            background: #f9fafb;
+        }
+
+        .sort-header::after {
+            content: '↕️';
+            position: absolute;
+            right: 5px;
+            opacity: 0.5;
+        }
+
+        .sort-header.asc::after {
+            content: '↑';
+            opacity: 1;
+        }
+
+        .sort-header.desc::after {
+            content: '↓';
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">AmFi Matching System</div>
+        <div class="user-info">
+            <span>Bem-vindo(a), <strong id="userName">Usuário</strong></span>
+            <button class="logout-btn" onclick="logout()">Sair</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('dashboard')">Dashboard</button>
+            <button class="nav-tab" onclick="showTab('originadores')">Originadores</button>
+            <button class="nav-tab" onclick="showTab('investidores')">Investidores</button>
+            <button class="nav-tab" onclick="showTab('matches')">Matches</button>
+        </div>
+
+        <div class="tab-content">
+            <!-- Dashboard Tab -->
+            <div id="dashboard" class="tab-panel active">
+                <h2>Dashboard Geral</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalOriginadores">-</div>
+                        <div class="stat-label">Originadores Ativos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalInvestidores">-</div>
+                        <div class="stat-label">Investidores Ativos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalMatches">-</div>
+                        <div class="stat-label">Matches Encontrados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalVolume">-</div>
+                        <div class="stat-label">Volume Total (R$)</div>
+                    </div>
+                </div>
+
+                <h3>Últimos Matches</h3>
+                <div id="recentMatches">
+                    <div class="loading">Carregando dados...</div>
+                </div>
+            </div>
+
+            <!-- Originadores Tab -->
+            <div id="originadores" class="tab-panel">
+                <h2>Originadores</h2>
+                <button class="add-btn" onclick="openOriginadorModal()">+ Adicionar Originador</button>
+                <div id="originadoresContent">
+                    <div class="loading">Carregando originadores...</div>
+                </div>
+            </div>
+
+            <!-- Investidores Tab -->
+            <div id="investidores" class="tab-panel">
+                <h2>Investidores</h2>
+                <button class="add-btn" onclick="openInvestidorModal()">+ Adicionar Investidor</button>
+                <div id="investidoresContent">
+                    <div class="loading">Carregando investidores...</div>
+                </div>
+            </div>
+
+            <!-- Matches Tab -->
+            <div id="matches" class="tab-panel">
+                <h2>Matches de Investimento</h2>
+                <div id="matchesContent">
+                    <div class="loading">Carregando matches...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Originador -->
+    <div id="originadorModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeOriginadorModal()">&times;</span>
+            <h2 id="originadorModalTitle">Adicionar Originador</h2>
+            <form id="originadorForm">
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label for="nome_originador">Nome do Originador *</label>
+                        <input type="text" id="nome_originador" name="nome_originador" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="volume_aprovado">Volume Aprovado (R$) *</label>
+                        <input type="number" id="volume_aprovado" name="volume_aprovado" step="0.01" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="volume_atual_em_uso">Volume Atual em Uso (R$)</label>
+                        <input type="number" id="volume_atual_em_uso" name="volume_atual_em_uso" step="0.01">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taxa_cdi_plus">Taxa CDI+ (%)</label>
+                        <input type="number" id="taxa_cdi_plus" name="taxa_cdi_plus" step="0.01">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taxa_pre_fixada">Taxa Pré-fixada (%)</label>
+                        <input type="number" id="taxa_pre_fixada" name="taxa_pre_fixada" step="0.01">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="prazo">Prazo (meses)</label>
+                        <input type="number" id="prazo" name="prazo">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="tipos_ativo">Tipos de Ativo * (segure Ctrl para selecionar múltiplos)</label>
+                        <select id="tipos_ativo" name="tipos_ativo" multiple required style="min-height: 100px;">
+                            <option value="CCB">CCB</option>
+                            <option value="duplicatas">Duplicatas</option>
+                            <option value="ativo_judicial">Ativo Judicial</option>
+                            <option value="contrato">Contrato</option>
+                            <option value="outros">Outros</option>
+                        </select>
+                        <small style="color: #666; font-size: 0.8em;">Segure Ctrl (Cmd no Mac) para selecionar múltiplas opções</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="concentracao_cedente">Concentração Cedente (%)</label>
+                        <input type="number" id="concentracao_cedente" name="concentracao_cedente" step="0.01">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="concentracao_sacado">Concentração Sacado (%)</label>
+                        <input type="number" id="concentracao_sacado" name="concentracao_sacado" step="0.01">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taxa_subordinacao">Taxa Subordinação (%)</label>
+                        <input type="number" id="taxa_subordinacao" name="taxa_subordinacao" step="0.01">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="observacoes_orig">Observações</label>
+                        <textarea id="observacoes_orig" name="observacoes" placeholder="Observações, prints ou informações adicionais sobre o originador..."></textarea>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeOriginadorModal()">Cancelar</button>
+                    <button type="submit" class="btn-save">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Investidor -->
+    <div id="investidorModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeInvestidorModal()">&times;</span>
+            <h2 id="investidorModalTitle">Adicionar Investidor</h2>
+            <form id="investidorForm">
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label for="nome_investidor">Nome do Investidor *</label>
+                        <input type="text" id="nome_investidor" name="nome_investidor" required>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="tipos_ativo_inv">Tipos de Ativo * (segure Ctrl para selecionar múltiplos)</label>
+                        <select id="tipos_ativo_inv" name="tipos_ativo" multiple required style="min-height: 100px;">
+                            <option value="CCB">CCB</option>
+                            <option value="duplicatas">Duplicatas</option>
+                            <option value="ativo_judicial">Ativo Judicial</option>
+                            <option value="contrato">Contrato</option>
+                            <option value="outros">Outros</option>
+                        </select>
+                        <small style="color: #666; font-size: 0.8em;">Segure Ctrl (Cmd no Mac) para selecionar múltiplas opções</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="volume_minimo">Volume Mínimo (R$) *</label>
+                        <input type="number" id="volume_minimo" name="volume_minimo" step="0.01" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taxa_minima_cdi_plus">Taxa Mínima CDI+ (%)</label>
+                        <input type="number" id="taxa_minima_cdi_plus" name="taxa_minima_cdi_plus" step="0.01">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taxa_minima_pre_fixada">Taxa Mínima Pré-fixada (%)</label>
+                        <input type="number" id="taxa_minima_pre_fixada" name="taxa_minima_pre_fixada" step="0.01">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="observacoes">Observações</label>
+                        <textarea id="observacoes" name="observacoes" placeholder="Observações adicionais sobre critérios de investimento..."></textarea>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeInvestidorModal()">Cancelar</button>
+                    <button type="submit" class="btn-save">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Dynamic API URL configuration
+        const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3001' : 'https://amfi-matching-backend.onrender.com';
+
+        let currentUser = null;
+        let dashboardData = {
+            originadores: [],
+            investidores: [],
+            matches: []
+        };
+
+        // Variáveis para paginação e filtros
+        let currentTab = 'dashboard';
+        let tableState = {
+            originadores: {
+                currentPage: 1,
+                itemsPerPage: 10,
+                searchTerm: '',
+                sortField: '',
+                sortDirection: 'asc'
+            },
+            investidores: {
+                currentPage: 1,
+                itemsPerPage: 10,
+                searchTerm: '',
+                sortField: '',
+                sortDirection: 'asc'
+            },
+            matches: {
+                currentPage: 1,
+                itemsPerPage: 10,
+                searchTerm: '',
+                sortField: '',
+                sortDirection: 'asc'
+            }
+        };
+
+        // Verificar se o usuário está logado
+        function checkAuth() {
+            const token = localStorage.getItem('amfi_token');
+            const user = localStorage.getItem('amfi_user');
+
+            if (!token || !user) {
+                window.location.href = 'teste-simples.html';
+                return false;
+            }
+
+            currentUser = JSON.parse(user);
+            document.getElementById('userName').textContent = currentUser.name;
+            return true;
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('amfi_token');
+            localStorage.removeItem('amfi_user');
+            window.location.href = 'teste-simples.html';
+        }
+
+        // Alternar abas
+        function showTab(tabName) {
+            // Remover active de todas as abas
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+
+            // Ativar aba selecionada
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+
+            currentTab = tabName;
+
+            // Carregar dados se necessário
+            if (tabName !== 'dashboard') {
+                loadTabData(tabName);
+            }
+        }
+
+        // Carregar dados das abas
+        async function loadTabData(tab) {
+            const contentDiv = document.getElementById(tab + 'Content');
+            contentDiv.innerHTML = '<div class="loading">Carregando dados...</div>';
+
+            try {
+                const response = await fetch(`${apiUrl}/api/${tab}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    renderTabContent(tab, data[tab] || data.matches);
+                } else {
+                    contentDiv.innerHTML = `<div class="error">Erro ao carregar ${tab}: ${data.error}</div>`;
+                }
+            } catch (error) {
+                contentDiv.innerHTML = `<div class="error">Erro de conexão: Verifique se o backend está rodando</div>`;
+            }
+        }
+
+        // Funções de utilidade para paginação
+        function filterData(data, searchTerm) {
+            if (!searchTerm) return data;
+
+            return data.filter(item => {
+                return Object.values(item).some(value => {
+                    if (Array.isArray(value)) {
+                        return value.some(v => String(v).toLowerCase().includes(searchTerm.toLowerCase()));
+                    }
+                    return String(value).toLowerCase().includes(searchTerm.toLowerCase());
+                });
+            });
+        }
+
+        function sortData(data, field, direction) {
+            if (!field) return data;
+
+            return [...data].sort((a, b) => {
+                let aVal = a[field];
+                let bVal = b[field];
+
+                // Handle arrays (tipos_ativo)
+                if (Array.isArray(aVal)) aVal = aVal.join(', ');
+                if (Array.isArray(bVal)) bVal = bVal.join(', ');
+
+                // Convert to number if possible
+                const aNum = parseFloat(aVal);
+                const bNum = parseFloat(bVal);
+                if (!isNaN(aNum) && !isNaN(bNum)) {
+                    return direction === 'asc' ? aNum - bNum : bNum - aNum;
+                }
+
+                // String comparison
+                return direction === 'asc'
+                    ? String(aVal).localeCompare(String(bVal))
+                    : String(bVal).localeCompare(String(aVal));
+            });
+        }
+
+        function paginateData(data, page, itemsPerPage) {
+            const startIndex = (page - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            return {
+                data: data.slice(startIndex, endIndex),
+                totalPages: Math.ceil(data.length / itemsPerPage),
+                totalItems: data.length,
+                startIndex: startIndex + 1,
+                endIndex: Math.min(endIndex, data.length)
+            };
+        }
+
+        // Renderizar conteúdo das abas com paginação
+        function renderTabContent(tab, data) {
+            const contentDiv = document.getElementById(tab + 'Content');
+
+            if (!data || data.length === 0) {
+                contentDiv.innerHTML = '<div class="no-results">Nenhum registro encontrado.</div>';
+                return;
+            }
+
+            // Aplicar filtros e ordenação
+            const state = tableState[tab];
+            let filteredData = filterData(data, state.searchTerm);
+            let sortedData = sortData(filteredData, state.sortField, state.sortDirection);
+            let paginatedResult = paginateData(sortedData, state.currentPage, state.itemsPerPage);
+
+            if (tab === 'originadores') {
+                contentDiv.innerHTML = `
+                    <div class="table-controls">
+                        <div class="search-box">
+                            <input type="text" placeholder="Buscar originadores..." value="${state.searchTerm}"
+                                   onkeyup="handleSearch('${tab}', this.value)">
+                        </div>
+                        <div class="items-per-page">
+                            <span>Mostrar:</span>
+                            <select onchange="handleItemsPerPageChange('${tab}', this.value)">
+                                <option value="5" ${state.itemsPerPage === 5 ? 'selected' : ''}>5</option>
+                                <option value="10" ${state.itemsPerPage === 10 ? 'selected' : ''}>10</option>
+                                <option value="25" ${state.itemsPerPage === 25 ? 'selected' : ''}>25</option>
+                                <option value="50" ${state.itemsPerPage === 50 ? 'selected' : ''}>50</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th class="sort-header ${state.sortField === 'nome_originador' ? state.sortDirection : ''}"
+                                        onclick="handleSort('${tab}', 'nome_originador')">Nome</th>
+                                    <th class="sort-header ${state.sortField === 'volume_aprovado' ? state.sortDirection : ''}"
+                                        onclick="handleSort('${tab}', 'volume_aprovado')">Volume Aprovado</th>
+                                    <th class="sort-header ${state.sortField === 'volume_atual_em_uso' ? state.sortDirection : ''}"
+                                        onclick="handleSort('${tab}', 'volume_atual_em_uso')">Volume em Uso</th>
+                                    <th>Volume Disponível</th>
+                                    <th class="sort-header ${state.sortField === 'taxa_cdi_plus' ? state.sortDirection : ''}"
+                                        onclick="handleSort('${tab}', 'taxa_cdi_plus')">Taxa CDI+</th>
+                                    <th class="sort-header ${state.sortField === 'taxa_pre_fixada' ? state.sortDirection : ''}"
+                                        onclick="handleSort('${tab}', 'taxa_pre_fixada')">Taxa Pré</th>
+                                    <th class="sort-header ${state.sortField === 'tipos_ativo' ? state.sortDirection : ''}"
+                                        onclick="handleSort('${tab}', 'tipos_ativo')">Tipos de Ativo</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${paginatedResult.data.length === 0 ?
+                                    '<tr><td colspan="8" class="no-results">Nenhum originador encontrado.</td></tr>' :
+                                    paginatedResult.data.map(orig => {
+                                        const volumeEmUso = orig.volume_atual_em_uso || 0;
+                                        const volumeDisponivel = orig.volume_aprovado - volumeEmUso;
+                                        return `
+                                        <tr>
+                                            <td>${orig.nome_originador}</td>
+                                            <td><span class="currency">R$ ${orig.volume_aprovado.toLocaleString('pt-BR')}</span></td>
+                                            <td><span class="currency">R$ ${volumeEmUso.toLocaleString('pt-BR')}</span></td>
+                                            <td><span class="currency" style="color: ${volumeDisponivel > 0 ? '#059669' : '#dc2626'}">R$ ${volumeDisponivel.toLocaleString('pt-BR')}</span></td>
+                                            <td>${orig.taxa_cdi_plus}%</td>
+                                            <td>${orig.taxa_pre_fixada}%</td>
+                                            <td>${Array.isArray(orig.tipos_ativo) ? orig.tipos_ativo.join(', ') : orig.tipos_ativo || orig.tipo_ativo}</td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <button class="btn-edit" onclick="editOriginador(${orig.id})">Editar</button>
+                                                    <button class="btn-delete" onclick="deleteOriginador(${orig.id})">Excluir</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        `;
+                                    }).join('')
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    ${renderPagination(tab, paginatedResult)}
+                `;
+            } else if (tab === 'investidores') {
+                contentDiv.innerHTML = `
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Volume Mínimo</th>
+                                <th>Taxa Mín. CDI+</th>
+                                <th>Taxa Mín. Pré</th>
+                                <th>Tipos de Ativo</th>
+                                <th>Observações</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.map(inv => `
+                                <tr>
+                                    <td>${inv.nome_investidor}</td>
+                                    <td><span class="currency">R$ ${inv.volume_minimo.toLocaleString('pt-BR')}</span></td>
+                                    <td>${inv.taxa_minima_cdi_plus}%</td>
+                                    <td>${inv.taxa_minima_pre_fixada}%</td>
+                                    <td>${Array.isArray(inv.tipos_ativo) ? inv.tipos_ativo.join(', ') : inv.tipos_ativo || inv.tipo_ativo}</td>
+                                    <td>${inv.observacoes}</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn-edit" onclick="editInvestidor(${inv.id})">Editar</button>
+                                            <button class="btn-delete" onclick="deleteInvestidor(${inv.id})">Excluir</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } else if (tab === 'matches') {
+                contentDiv.innerHTML = `
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Originador</th>
+                                <th>Investidor</th>
+                                <th>Tipo Ativo</th>
+                                <th>Volume</th>
+                                <th>Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.map(match => `
+                                <tr>
+                                    <td>${match.originador.nome_originador}</td>
+                                    <td>${match.investidor.nome_investidor}</td>
+                                    <td>${Array.isArray(match.originador.tipos_ativo) ? match.originador.tipos_ativo.join(', ') : match.originador.tipos_ativo || match.originador.tipo_ativo}</td>
+                                    <td><span class="currency">R$ ${match.originador.volume_aprovado.toLocaleString('pt-BR')}</span></td>
+                                    <td>
+                                        <span class="match-score ${match.match_score >= 80 ? 'high' : match.match_score >= 60 ? 'medium' : 'low'}">
+                                            ${match.match_score}%
+                                        </span>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            }
+        }
+
+        // Carregar dados do dashboard
+        async function loadDashboard() {
+            try {
+                // Carregar todos os dados em paralelo
+                const [origResponse, invResponse, matchResponse] = await Promise.all([
+                    fetch(`${apiUrl}/api/originadores`),
+                    fetch(`${apiUrl}/api/investidores`),
+                    fetch(`${apiUrl}/api/matches`)
+                ]);
+
+                const origData = await origResponse.json();
+                const invData = await invResponse.json();
+                const matchData = await matchResponse.json();
+
+                if (origResponse.ok && invResponse.ok && matchResponse.ok) {
+                    dashboardData = {
+                        originadores: origData.originadores,
+                        investidores: invData.investidores,
+                        matches: matchData.matches
+                    };
+
+                    updateDashboardStats();
+                    renderRecentMatches();
+                } else {
+                    document.getElementById('recentMatches').innerHTML = '<div class="error">Erro ao carregar dados do dashboard</div>';
+                }
+            } catch (error) {
+                document.getElementById('recentMatches').innerHTML = '<div class="error">Erro de conexão com o backend</div>';
+            }
+        }
+
+        // Atualizar estatísticas do dashboard
+        function updateDashboardStats() {
+            const totalVolume = dashboardData.originadores.reduce((sum, orig) => sum + orig.volume_aprovado, 0);
+
+            document.getElementById('totalOriginadores').textContent = dashboardData.originadores.length;
+            document.getElementById('totalInvestidores').textContent = dashboardData.investidores.length;
+            document.getElementById('totalMatches').textContent = dashboardData.matches.length;
+            document.getElementById('totalVolume').textContent = 'R$ ' + totalVolume.toLocaleString('pt-BR');
+        }
+
+        // Renderizar matches recentes
+        function renderRecentMatches() {
+            const recentMatchesDiv = document.getElementById('recentMatches');
+
+            if (dashboardData.matches.length === 0) {
+                recentMatchesDiv.innerHTML = '<p>Nenhum match encontrado ainda.</p>';
+                return;
+            }
+
+            recentMatchesDiv.innerHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Originador</th>
+                            <th>Investidor</th>
+                            <th>Tipo</th>
+                            <th>Volume</th>
+                            <th>Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${dashboardData.matches.map(match => `
+                            <tr>
+                                <td>${match.originador.nome_originador}</td>
+                                <td>${match.investidor.nome_investidor}</td>
+                                <td>${Array.isArray(match.originador.tipos_ativo) ? match.originador.tipos_ativo.join(', ') : match.originador.tipos_ativo || match.originador.tipo_ativo}</td>
+                                <td><span class="currency">R$ ${match.originador.volume_aprovado.toLocaleString('pt-BR')}</span></td>
+                                <td>
+                                    <span class="match-score ${match.match_score >= 80 ? 'high' : match.match_score >= 60 ? 'medium' : 'low'}">
+                                        ${match.match_score}%
+                                    </span>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // ====== FUNÇÕES DE PAGINAÇÃO E FILTROS ======
+
+        function renderPagination(tab, paginatedResult) {
+            if (paginatedResult.totalPages <= 1) return '';
+
+            const state = tableState[tab];
+            let pagination = `
+                <div class="pagination">
+                    <button ${state.currentPage === 1 ? 'disabled' : ''}
+                            onclick="changePage('${tab}', ${state.currentPage - 1})">
+                        ‹ Anterior
+                    </button>
+            `;
+
+            // Gerar botões de páginas
+            const startPage = Math.max(1, state.currentPage - 2);
+            const endPage = Math.min(paginatedResult.totalPages, state.currentPage + 2);
+
+            if (startPage > 1) {
+                pagination += `<button onclick="changePage('${tab}', 1)">1</button>`;
+                if (startPage > 2) pagination += '<span>...</span>';
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                pagination += `
+                    <button class="${i === state.currentPage ? 'active' : ''}"
+                            onclick="changePage('${tab}', ${i})">
+                        ${i}
+                    </button>
+                `;
+            }
+
+            if (endPage < paginatedResult.totalPages) {
+                if (endPage < paginatedResult.totalPages - 1) pagination += '<span>...</span>';
+                pagination += `<button onclick="changePage('${tab}', ${paginatedResult.totalPages})">${paginatedResult.totalPages}</button>`;
+            }
+
+            pagination += `
+                    <button ${state.currentPage === paginatedResult.totalPages ? 'disabled' : ''}
+                            onclick="changePage('${tab}', ${state.currentPage + 1})">
+                        Próxima ›
+                    </button>
+                    <div class="pagination-info">
+                        Mostrando ${paginatedResult.startIndex}-${paginatedResult.endIndex} de ${paginatedResult.totalItems} registros
+                    </div>
+                </div>
+            `;
+
+            return pagination;
+        }
+
+        function changePage(tab, page) {
+            tableState[tab].currentPage = page;
+            loadTabData(tab);
+        }
+
+        function handleSearch(tab, searchTerm) {
+            tableState[tab].searchTerm = searchTerm;
+            tableState[tab].currentPage = 1; // Reset to first page
+            loadTabData(tab);
+        }
+
+        function handleSort(tab, field) {
+            const state = tableState[tab];
+            if (state.sortField === field) {
+                state.sortDirection = state.sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                state.sortField = field;
+                state.sortDirection = 'asc';
+            }
+            loadTabData(tab);
+        }
+
+        function handleItemsPerPageChange(tab, itemsPerPage) {
+            tableState[tab].itemsPerPage = parseInt(itemsPerPage);
+            tableState[tab].currentPage = 1; // Reset to first page
+            loadTabData(tab);
+        }
+
+        // ====== FUNÇÕES DE MODAL ======
+        let currentEditingId = null;
+
+        // Modal Originador
+        function openOriginadorModal(id = null) {
+            currentEditingId = id;
+            const modal = document.getElementById('originadorModal');
+            const form = document.getElementById('originadorForm');
+            const title = document.getElementById('originadorModalTitle');
+
+            if (id) {
+                title.textContent = 'Editar Originador';
+                // Buscar dados do originador para preencher o formulário
+                loadOriginadorData(id);
+            } else {
+                title.textContent = 'Adicionar Originador';
+                form.reset();
+            }
+
+            modal.style.display = 'block';
+        }
+
+        function closeOriginadorModal() {
+            document.getElementById('originadorModal').style.display = 'none';
+            currentEditingId = null;
+        }
+
+        async function loadOriginadorData(id) {
+            try {
+                const response = await fetch(`${apiUrl}/api/originadores`);
+                const data = await response.json();
+                const originador = data.originadores.find(o => o.id === id);
+
+                if (originador) {
+                    // Preencher campos do formulário
+                    document.getElementById('nome_originador').value = originador.nome_originador;
+                    document.getElementById('volume_aprovado').value = originador.volume_aprovado;
+                    document.getElementById('volume_atual_em_uso').value = originador.volume_atual_em_uso || 0;
+                    document.getElementById('taxa_cdi_plus').value = originador.taxa_cdi_plus;
+                    document.getElementById('taxa_pre_fixada').value = originador.taxa_pre_fixada;
+                    document.getElementById('prazo').value = originador.prazo;
+                    document.getElementById('concentracao_cedente').value = originador.concentracao_cedente;
+                    document.getElementById('concentracao_sacado').value = originador.concentracao_sacado;
+                    document.getElementById('taxa_subordinacao').value = originador.taxa_subordinacao;
+                    document.getElementById('observacoes_orig').value = originador.observacoes || '';
+
+                    // Selecionar múltiplos tipos de ativo
+                    const tiposAtivoSelect = document.getElementById('tipos_ativo');
+                    Array.from(tiposAtivoSelect.options).forEach(option => {
+                        option.selected = originador.tipos_ativo && originador.tipos_ativo.includes(option.value);
+                    });
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados do originador:', error);
+            }
+        }
+
+        // Modal Investidor
+        function openInvestidorModal(id = null) {
+            currentEditingId = id;
+            const modal = document.getElementById('investidorModal');
+            const form = document.getElementById('investidorForm');
+            const title = document.getElementById('investidorModalTitle');
+
+            if (id) {
+                title.textContent = 'Editar Investidor';
+                loadInvestidorData(id);
+            } else {
+                title.textContent = 'Adicionar Investidor';
+                form.reset();
+            }
+
+            modal.style.display = 'block';
+        }
+
+        function closeInvestidorModal() {
+            document.getElementById('investidorModal').style.display = 'none';
+            currentEditingId = null;
+        }
+
+        async function loadInvestidorData(id) {
+            try {
+                const response = await fetch(`${apiUrl}/api/investidores`);
+                const data = await response.json();
+                const investidor = data.investidores.find(i => i.id === id);
+
+                if (investidor) {
+                    document.getElementById('nome_investidor').value = investidor.nome_investidor;
+                    document.getElementById('volume_minimo').value = investidor.volume_minimo;
+                    document.getElementById('taxa_minima_cdi_plus').value = investidor.taxa_minima_cdi_plus;
+                    document.getElementById('taxa_minima_pre_fixada').value = investidor.taxa_minima_pre_fixada;
+                    document.getElementById('observacoes').value = investidor.observacoes;
+
+                    // Selecionar múltiplos tipos de ativo
+                    const tiposAtivoSelect = document.getElementById('tipos_ativo_inv');
+                    Array.from(tiposAtivoSelect.options).forEach(option => {
+                        option.selected = investidor.tipos_ativo && investidor.tipos_ativo.includes(option.value);
+                    });
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados do investidor:', error);
+            }
+        }
+
+        // ====== FUNÇÕES CRUD ======
+
+        // Originadores
+        async function saveOriginador(formData) {
+            const url = currentEditingId
+                ? `${apiUrl}/api/originadores/${currentEditingId}`
+                : `${apiUrl}/api/originadores`;
+
+            const method = currentEditingId ? 'PUT' : 'POST';
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert(currentEditingId ? 'Originador atualizado com sucesso!' : 'Originador criado com sucesso!');
+                    closeOriginadorModal();
+                    loadTabData('originadores');
+                    loadDashboard(); // Atualizar dashboard
+                } else {
+                    alert('Erro: ' + data.error);
+                }
+            } catch (error) {
+                alert('Erro de conexão: ' + error.message);
+            }
+        }
+
+        function editOriginador(id) {
+            openOriginadorModal(id);
+        }
+
+        async function deleteOriginador(id) {
+            if (!confirm('Tem certeza que deseja excluir este originador?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${apiUrl}/api/originadores/${id}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('Originador excluído com sucesso!');
+                    loadTabData('originadores');
+                    loadDashboard();
+                } else {
+                    alert('Erro: ' + data.error);
+                }
+            } catch (error) {
+                alert('Erro de conexão: ' + error.message);
+            }
+        }
+
+        // Investidores
+        async function saveInvestidor(formData) {
+            const url = currentEditingId
+                ? `${apiUrl}/api/investidores/${currentEditingId}`
+                : `${apiUrl}/api/investidores`;
+
+            const method = currentEditingId ? 'PUT' : 'POST';
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert(currentEditingId ? 'Investidor atualizado com sucesso!' : 'Investidor criado com sucesso!');
+                    closeInvestidorModal();
+                    loadTabData('investidores');
+                    loadDashboard();
+                } else {
+                    alert('Erro: ' + data.error);
+                }
+            } catch (error) {
+                alert('Erro de conexão: ' + error.message);
+            }
+        }
+
+        function editInvestidor(id) {
+            openInvestidorModal(id);
+        }
+
+        async function deleteInvestidor(id) {
+            if (!confirm('Tem certeza que deseja excluir este investidor?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${apiUrl}/api/investidores/${id}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('Investidor excluído com sucesso!');
+                    loadTabData('investidores');
+                    loadDashboard();
+                } else {
+                    alert('Erro: ' + data.error);
+                }
+            } catch (error) {
+                alert('Erro de conexão: ' + error.message);
+            }
+        }
+
+        // ====== EVENT LISTENERS ======
+
+        // Form submit handlers
+        document.getElementById('originadorForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+
+            // Capturar seleções múltiplas de tipos de ativo
+            const tiposAtivoSelect = document.getElementById('tipos_ativo');
+            const selectedTipos = Array.from(tiposAtivoSelect.selectedOptions).map(option => option.value);
+            data.tipos_ativo = selectedTipos;
+
+            await saveOriginador(data);
+        });
+
+        document.getElementById('investidorForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+
+            // Capturar seleções múltiplas de tipos de ativo
+            const tiposAtivoSelect = document.getElementById('tipos_ativo_inv');
+            const selectedTipos = Array.from(tiposAtivoSelect.selectedOptions).map(option => option.value);
+            data.tipos_ativo = selectedTipos;
+
+            await saveInvestidor(data);
+        });
+
+        // Fechar modal clicando fora
+        window.onclick = function(event) {
+            const originadorModal = document.getElementById('originadorModal');
+            const investidorModal = document.getElementById('investidorModal');
+
+            if (event.target === originadorModal) {
+                closeOriginadorModal();
+            }
+            if (event.target === investidorModal) {
+                closeInvestidorModal();
+            }
+        }
+
+        // Inicializar página
+        document.addEventListener('DOMContentLoaded', function() {
+            if (checkAuth()) {
+                loadDashboard();
+            }
+        });
+    </script>
+</body>
+</html>
