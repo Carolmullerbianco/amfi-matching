@@ -1,17 +1,171 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/amfi-logo.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AmFi Matching - Sistema de Matching para Originadores e Investidores</title>
-    <meta name="description" content="Sistema de matching para conectar originadores e investidores da AmFi Finance" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AmFi Matching - Sistema de Investimentos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #8B5CF6, #EC4899);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 400px;
+            margin: 50px auto;
+            background: white;
+            color: #333;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 { color: #8B5CF6; text-align: center; }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #8B5CF6, #EC4899);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px 0;
+        }
+        button:hover { opacity: 0.9; }
+        .btn-secondary {
+            background: linear-gradient(135deg, #6B7280, #4B5563) !important;
+        }
+        .toggle-text {
+            text-align: center;
+            margin: 15px 0;
+            color: #666;
+            cursor: pointer;
+        }
+        .toggle-text:hover {
+            color: #8B5CF6;
+            text-decoration: underline;
+        }
+        .result { margin-top: 20px; padding: 15px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AmFi Matching</h1>
+        <p>Plataforma de Investimentos - Originadores & Investidores</p>
+        
+        <form id="loginForm">
+            <input type="text" id="name" placeholder="Nome completo" style="display: none;">
+            <input type="email" id="email" placeholder="Email (@amfi.finance)" required>
+            <input type="password" id="password" placeholder="Senha" required>
+            <button type="submit" id="submitBtn">Entrar</button>
+        </form>
+
+        <div class="toggle-text" id="toggleMode">
+            Não tem conta? <strong>Cadastre-se aqui</strong>
+        </div>
+
+        <div id="result"></div>
+        
+        <div style="margin-top: 20px; font-size: 12px; text-align: center; color: #666;">
+            <strong>Acesso administrativo:</strong><br>
+            admin@amfi.finance | Senha: 123456
+        </div>
+    </div>
+
+    <script>
+        let isRegisterMode = false;
+
+        // Toggle entre login e cadastro
+        document.getElementById('toggleMode').addEventListener('click', function() {
+            isRegisterMode = !isRegisterMode;
+            const nameInput = document.getElementById('name');
+            const submitBtn = document.getElementById('submitBtn');
+            const toggleText = document.getElementById('toggleMode');
+
+            if (isRegisterMode) {
+                nameInput.style.display = 'block';
+                nameInput.required = true;
+                submitBtn.textContent = 'Cadastrar';
+                toggleText.innerHTML = 'Já tem conta? <strong>Entre aqui</strong>';
+            } else {
+                nameInput.style.display = 'none';
+                nameInput.required = false;
+                submitBtn.textContent = 'Entrar';
+                toggleText.innerHTML = 'Não tem conta? <strong>Cadastre-se aqui</strong>';
+            }
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const name = document.getElementById('name').value;
+            const resultDiv = document.getElementById('result');
+
+            try {
+                const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3001' : 'https://amfi-matching-backend.onrender.com';
+                const endpoint = isRegisterMode ? '/api/auth/register' : '/api/auth/login';
+                const body = isRegisterMode ? { email, password, name } : { email, password };
+
+                const response = await fetch(`${apiUrl}${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(body)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Salvar dados do usuário no localStorage
+                    localStorage.setItem('amfi_token', data.token);
+                    localStorage.setItem('amfi_user', JSON.stringify(data.user));
+
+                    const successMessage = isRegisterMode ?
+                        `<strong>✅ Cadastro realizado com sucesso!</strong><br>Bem-vindo(a), ${data.user.name}!<br><small>Redirecionando para o dashboard...</small>` :
+                        `<strong>✅ Login realizado com sucesso!</strong><br>Bem-vindo(a), ${data.user.name}!<br><small>Redirecionando para o dashboard...</small>`;
+
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            ${successMessage}
+                        </div>
+                    `;
+
+                    // Redirecionar para o dashboard após 1.5 segundos
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1500);
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <strong>❌ Erro:</strong> ${data.error}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <strong>❌ Erro de conexão:</strong><br>
+                        Não foi possível conectar com o servidor
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
 </html>
