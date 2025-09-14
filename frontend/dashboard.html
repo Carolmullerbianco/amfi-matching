@@ -434,7 +434,8 @@
 
         .data-table {
             width: 100%;
-            min-width: 800px;
+            min-width: 1400px;
+            table-layout: fixed;
         }
 
         .table-wrapper {
@@ -474,6 +475,57 @@
         .sort-header.desc::after {
             content: '↓';
             opacity: 1;
+        }
+
+        .badge {
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .text-sm {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+
+        .data-table th:first-child,
+        .data-table td:first-child {
+            width: 120px;
+            min-width: 120px;
+        }
+
+        .data-table th:nth-child(n+2):nth-child(-n+4),
+        .data-table td:nth-child(n+2):nth-child(-n+4) {
+            width: 120px;
+            min-width: 120px;
+        }
+
+        .data-table th:nth-child(n+5):nth-child(-n+10),
+        .data-table td:nth-child(n+5):nth-child(-n+10) {
+            width: 80px;
+            min-width: 80px;
+        }
+
+        .data-table th:nth-child(11),
+        .data-table td:nth-child(11) {
+            width: 150px;
+            min-width: 150px;
+        }
+
+        .data-table th:nth-child(12),
+        .data-table td:nth-child(12) {
+            width: 200px;
+            min-width: 200px;
+        }
+
+        .data-table th:last-child,
+        .data-table td:last-child {
+            width: 120px;
+            min-width: 120px;
         }
     </style>
 </head>
@@ -877,26 +929,40 @@
                                         onclick="handleSort('${tab}', 'taxa_cdi_plus')">Taxa CDI+</th>
                                     <th class="sort-header ${state.sortField === 'taxa_pre_fixada' ? state.sortDirection : ''}"
                                         onclick="handleSort('${tab}', 'taxa_pre_fixada')">Taxa Pré</th>
+                                    <th class="sort-header ${state.sortField === 'prazo' ? state.sortDirection : ''}"
+                                        onclick="handleSort('${tab}', 'prazo')">Prazo</th>
+                                    <th class="sort-header ${state.sortField === 'concentracao_cedente' ? state.sortDirection : ''}"
+                                        onclick="handleSort('${tab}', 'concentracao_cedente')">Conc. Cedente</th>
+                                    <th class="sort-header ${state.sortField === 'concentracao_sacado' ? state.sortDirection : ''}"
+                                        onclick="handleSort('${tab}', 'concentracao_sacado')">Conc. Sacado</th>
+                                    <th class="sort-header ${state.sortField === 'taxa_subordinacao' ? state.sortDirection : ''}"
+                                        onclick="handleSort('${tab}', 'taxa_subordinacao')">Taxa Subord.</th>
                                     <th class="sort-header ${state.sortField === 'tipos_ativo' ? state.sortDirection : ''}"
                                         onclick="handleSort('${tab}', 'tipos_ativo')">Tipos de Ativo</th>
+                                    <th>Observações</th>
                                     <th>Ações</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${paginatedResult.data.length === 0 ?
-                                    '<tr><td colspan="8" class="no-results">Nenhum originador encontrado.</td></tr>' :
+                                    '<tr><td colspan="13" class="no-results">Nenhum originador encontrado.</td></tr>' :
                                     paginatedResult.data.map(orig => {
                                         const volumeEmUso = orig.volume_atual_em_uso || 0;
                                         const volumeDisponivel = orig.volume_aprovado - volumeEmUso;
                                         return `
                                         <tr>
-                                            <td>${orig.nome_originador}</td>
+                                            <td><strong>${orig.nome_originador}</strong></td>
                                             <td><span class="currency">R$ ${orig.volume_aprovado.toLocaleString('pt-BR')}</span></td>
                                             <td><span class="currency">R$ ${volumeEmUso.toLocaleString('pt-BR')}</span></td>
                                             <td><span class="currency" style="color: ${volumeDisponivel > 0 ? '#059669' : '#dc2626'}">R$ ${volumeDisponivel.toLocaleString('pt-BR')}</span></td>
-                                            <td>${orig.taxa_cdi_plus}%</td>
-                                            <td>${orig.taxa_pre_fixada}%</td>
-                                            <td>${Array.isArray(orig.tipos_ativo) ? orig.tipos_ativo.join(', ') : orig.tipos_ativo || orig.tipo_ativo}</td>
+                                            <td>${orig.taxa_cdi_plus || 0}%</td>
+                                            <td>${orig.taxa_pre_fixada || 0}%</td>
+                                            <td>${orig.prazo || '-'} meses</td>
+                                            <td>${orig.concentracao_cedente || 0}%</td>
+                                            <td>${orig.concentracao_sacado || 0}%</td>
+                                            <td>${orig.taxa_subordinacao || 0}%</td>
+                                            <td><span class="badge">${Array.isArray(orig.tipos_ativo) ? orig.tipos_ativo.join(', ') : orig.tipos_ativo || orig.tipo_ativo}</span></td>
+                                            <td><div class="text-sm" style="max-width: 200px; word-wrap: break-word;">${orig.observacoes || '-'}</div></td>
                                             <td>
                                                 <div class="action-buttons">
                                                     <button class="btn-edit" onclick="editOriginador(${orig.id})">Editar</button>
@@ -915,37 +981,65 @@
                 `;
             } else if (tab === 'investidores') {
                 contentDiv.innerHTML = `
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Nome</th>
-                                <th>Volume Mínimo</th>
-                                <th>Taxa Mín. CDI+</th>
-                                <th>Taxa Mín. Pré</th>
-                                <th>Tipos de Ativo</th>
-                                <th>Observações</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${data.map(inv => `
+                    <div class="table-controls">
+                        <div class="search-box">
+                            <input type="text" placeholder="Buscar investidores..." value="${state.searchTerm}"
+                                   onkeyup="handleSearch('${tab}', this.value)">
+                        </div>
+                        <div class="items-per-page">
+                            <span>Mostrar:</span>
+                            <select onchange="handleItemsPerPageChange('${tab}', this.value)">
+                                <option value="5" ${state.itemsPerPage === 5 ? 'selected' : ''}>5</option>
+                                <option value="10" ${state.itemsPerPage === 10 ? 'selected' : ''}>10</option>
+                                <option value="25" ${state.itemsPerPage === 25 ? 'selected' : ''}>25</option>
+                                <option value="50" ${state.itemsPerPage === 50 ? 'selected' : ''}>50</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
                                 <tr>
-                                    <td>${inv.nome_investidor}</td>
-                                    <td><span class="currency">R$ ${inv.volume_minimo.toLocaleString('pt-BR')}</span></td>
-                                    <td>${inv.taxa_minima_cdi_plus}%</td>
-                                    <td>${inv.taxa_minima_pre_fixada}%</td>
-                                    <td>${Array.isArray(inv.tipos_ativo) ? inv.tipos_ativo.join(', ') : inv.tipos_ativo || inv.tipo_ativo}</td>
-                                    <td>${inv.observacoes}</td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            <button class="btn-edit" onclick="editInvestidor(${inv.id})">Editar</button>
-                                            <button class="btn-delete" onclick="deleteInvestidor(${inv.id})">Excluir</button>
-                                        </div>
-                                    </td>
+                                    <th class="sort-header ${state.sortField === 'nome_investidor' ? state.sortDirection : ''}"
+                                        onclick="handleSort('${tab}', 'nome_investidor')">Nome</th>
+                                    <th class="sort-header ${state.sortField === 'tipos_ativo' ? state.sortDirection : ''}"
+                                        onclick="handleSort('${tab}', 'tipos_ativo')">Tipos de Ativo</th>
+                                    <th class="sort-header ${state.sortField === 'volume_minimo' ? state.sortDirection : ''}"
+                                        onclick="handleSort('${tab}', 'volume_minimo')">Volume Mínimo</th>
+                                    <th class="sort-header ${state.sortField === 'taxa_minima_cdi_plus' ? state.sortDirection : ''}"
+                                        onclick="handleSort('${tab}', 'taxa_minima_cdi_plus')">Taxa Mín. CDI+</th>
+                                    <th class="sort-header ${state.sortField === 'taxa_minima_pre_fixada' ? state.sortDirection : ''}"
+                                        onclick="handleSort('${tab}', 'taxa_minima_pre_fixada')">Taxa Mín. Pré</th>
+                                    <th>Observações</th>
+                                    <th>Ações</th>
                                 </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                ${paginatedResult.data.length === 0 ?
+                                    '<tr><td colspan="7" class="no-results">Nenhum investidor encontrado.</td></tr>' :
+                                    paginatedResult.data.map(inv => `
+                                        <tr>
+                                            <td><strong>${inv.nome_investidor}</strong></td>
+                                            <td><span class="badge">${Array.isArray(inv.tipos_ativo) ? inv.tipos_ativo.join(', ') : inv.tipos_ativo || inv.tipo_ativo}</span></td>
+                                            <td><span class="currency">R$ ${inv.volume_minimo.toLocaleString('pt-BR')}</span></td>
+                                            <td>${inv.taxa_minima_cdi_plus || 0}%</td>
+                                            <td>${inv.taxa_minima_pre_fixada || 0}%</td>
+                                            <td><div class="text-sm" style="max-width: 250px; word-wrap: break-word;">${inv.observacoes || '-'}</div></td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <button class="btn-edit" onclick="editInvestidor(${inv.id})">Editar</button>
+                                                    <button class="btn-delete" onclick="deleteInvestidor(${inv.id})">Excluir</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    `).join('')
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    ${renderPagination(tab, paginatedResult)}
                 `;
             } else if (tab === 'matches') {
                 contentDiv.innerHTML = `
