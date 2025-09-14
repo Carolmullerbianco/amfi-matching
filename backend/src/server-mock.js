@@ -10,45 +10,168 @@ app.use(express.json());
 // Caminho para o arquivo de dados
 const DB_PATH = path.join(__dirname, '../data/database.json');
 
-// Função para carregar dados do arquivo
+// Função para carregar dados do arquivo COM PROTEÇÃO TOTAL
 function loadDatabase() {
   try {
     if (fs.existsSync(DB_PATH)) {
       const data = fs.readFileSync(DB_PATH, 'utf8');
-      return JSON.parse(data);
+      const parsedData = JSON.parse(data);
+
+      console.log('📂 Dados existentes carregados:');
+      console.log(`   👤 ${parsedData.users?.length || 0} usuários`);
+      console.log(`   🏢 ${parsedData.originadores?.length || 0} originadores`);
+      console.log(`   💰 ${parsedData.investidores?.length || 0} investidores`);
+
+      return parsedData;
     } else {
-      // Criar estrutura inicial se o arquivo não existir
+      // Criar estrutura inicial APENAS se o arquivo não existir
+      console.log('🆕 Criando estrutura inicial do banco de dados...');
       const initialData = {
-        users: [],
+        users: [
+          {
+            id: 1,
+            email: "carolmullerbianco@gmail.com",
+            name: "Carol Muller Bianco",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 2,
+            email: "admin@amfi.finance",
+            name: "Admin AmFi",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+        ],
         originadores: [],
         investidores: []
       };
+
       saveDatabase(initialData);
       return initialData;
     }
   } catch (error) {
-    console.error('Erro ao carregar banco de dados:', error);
+    console.error('❌ ERRO CRÍTICO ao carregar banco de dados:', error);
+
+    // Tentar recuperar de backup
+    try {
+      const backupDir = path.join(__dirname, '../data/backups');
+      if (fs.existsSync(backupDir)) {
+        const backupFiles = fs.readdirSync(backupDir)
+          .filter(file => file.startsWith('database-backup-'))
+          .sort()
+          .reverse();
+
+        if (backupFiles.length > 0) {
+          console.log(`🔄 RECUPERANDO do backup: ${backupFiles[0]}`);
+          const backupPath = path.join(backupDir, backupFiles[0]);
+          const backupData = JSON.parse(fs.readFileSync(backupPath, 'utf8'));
+
+          // Salvar dados recuperados
+          fs.writeFileSync(DB_PATH, JSON.stringify(backupData, null, 2), 'utf8');
+
+          console.log('✅ DADOS RECUPERADOS DO BACKUP!');
+          return backupData;
+        }
+      }
+    } catch (recoveryError) {
+      console.error('❌ Falha na recuperação do backup:', recoveryError);
+    }
+
+    // Último recurso - estrutura vazia
     return {
-      users: [],
+      users: [
+        {
+          id: 1,
+          email: "carolmullerbianco@gmail.com",
+          name: "Carol Muller Bianco",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      ],
       originadores: [],
       investidores: []
     };
   }
 }
 
-// Função para salvar dados no arquivo
+// ==========================================
+// SISTEMA DE BACKUP ROBUSTO - NUNCA MAIS PERCA DADOS!
+// ==========================================
+
+// Função para criar backup com timestamp
+function createBackup(data) {
+  try {
+    const backupDir = path.join(__dirname, '../data/backups');
+    if (!fs.existsSync(backupDir)) {
+      fs.mkdirSync(backupDir, { recursive: true });
+    }
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const backupPath = path.join(backupDir, `database-backup-${timestamp}.json`);
+
+    fs.writeFileSync(backupPath, JSON.stringify(data, null, 2), 'utf8');
+    console.log(`🛡️  BACKUP CRIADO: ${backupPath}`);
+
+    // Manter apenas os últimos 10 backups
+    const backupFiles = fs.readdirSync(backupDir)
+      .filter(file => file.startsWith('database-backup-'))
+      .sort()
+      .reverse();
+
+    if (backupFiles.length > 10) {
+      backupFiles.slice(10).forEach(file => {
+        fs.unlinkSync(path.join(backupDir, file));
+      });
+    }
+
+    return true;
+  } catch (error) {
+    console.error('❌ Erro ao criar backup:', error);
+    return false;
+  }
+}
+
+// Função para salvar dados no arquivo COM BACKUP AUTOMÁTICO
 function saveDatabase(data) {
   try {
-    // Criar diretório se não existir
+    // 1. SEMPRE criar backup antes de salvar
+    createBackup(data);
+
+    // 2. Criar diretório principal se não existir
     const dir = path.dirname(DB_PATH);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
 
+    // 3. Salvar dados principais
     fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), 'utf8');
+    console.log(`💾 Dados salvos com sucesso! Originadores: ${data.originadores.length}, Investidores: ${data.investidores.length}`);
+
     return true;
   } catch (error) {
-    console.error('Erro ao salvar banco de dados:', error);
+    console.error('❌ ERRO CRÍTICO ao salvar banco de dados:', error);
+
+    // Tentar recuperar do backup mais recente
+    try {
+      const backupDir = path.join(__dirname, '../data/backups');
+      if (fs.existsSync(backupDir)) {
+        const backupFiles = fs.readdirSync(backupDir)
+          .filter(file => file.startsWith('database-backup-'))
+          .sort()
+          .reverse();
+
+        if (backupFiles.length > 0) {
+          console.log(`🔄 Tentando recuperar do backup: ${backupFiles[0]}`);
+          const backupData = JSON.parse(fs.readFileSync(path.join(backupDir, backupFiles[0]), 'utf8'));
+          fs.writeFileSync(DB_PATH, JSON.stringify(backupData, null, 2), 'utf8');
+          console.log('✅ Dados recuperados do backup!');
+        }
+      }
+    } catch (recoveryError) {
+      console.error('❌ Falha na recuperação do backup:', recoveryError);
+    }
+
     return false;
   }
 }
@@ -428,12 +551,136 @@ app.delete('/api/investidores/:id', (req, res) => {
   }
 });
 
+// ==========================================
+// ROTAS DE ADMINISTRAÇÃO E BACKUP
+// ==========================================
+
+// Listar todos os backups disponíveis
+app.get('/api/admin/backups', (req, res) => {
+  try {
+    const backupDir = path.join(__dirname, '../data/backups');
+
+    if (!fs.existsSync(backupDir)) {
+      return res.json({
+        message: 'Nenhum backup encontrado',
+        backups: [],
+        total: 0
+      });
+    }
+
+    const backupFiles = fs.readdirSync(backupDir)
+      .filter(file => file.startsWith('database-backup-'))
+      .map(file => {
+        const filePath = path.join(backupDir, file);
+        const stats = fs.statSync(filePath);
+        const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+
+        return {
+          filename: file,
+          created: stats.birthtime,
+          size: stats.size,
+          originadores: data.originadores?.length || 0,
+          investidores: data.investidores?.length || 0,
+          users: data.users?.length || 0
+        };
+      })
+      .sort((a, b) => b.created - a.created);
+
+    res.json({
+      message: 'Backups listados com sucesso',
+      backups: backupFiles,
+      total: backupFiles.length
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Erro ao listar backups',
+      details: error.message
+    });
+  }
+});
+
+// Criar backup manual
+app.post('/api/admin/backup', (req, res) => {
+  try {
+    const success = createBackup(database);
+
+    if (success) {
+      res.json({
+        message: 'Backup manual criado com sucesso',
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      res.status(500).json({
+        error: 'Falha ao criar backup manual'
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      error: 'Erro ao criar backup',
+      details: error.message
+    });
+  }
+});
+
+// Recuperar dados de um backup específico
+app.post('/api/admin/restore/:filename', (req, res) => {
+  try {
+    const { filename } = req.params;
+    const backupDir = path.join(__dirname, '../data/backups');
+    const backupPath = path.join(backupDir, filename);
+
+    if (!fs.existsSync(backupPath)) {
+      return res.status(404).json({
+        error: 'Backup não encontrado'
+      });
+    }
+
+    const backupData = JSON.parse(fs.readFileSync(backupPath, 'utf8'));
+
+    // Criar backup do estado atual antes de restaurar
+    createBackup(database);
+
+    // Restaurar dados do backup
+    database.users = backupData.users || [];
+    database.originadores = backupData.originadores || [];
+    database.investidores = backupData.investidores || [];
+
+    // Salvar dados restaurados
+    const success = saveDatabase(database);
+
+    if (success) {
+      res.json({
+        message: 'Dados restaurados com sucesso',
+        restored: {
+          users: database.users.length,
+          originadores: database.originadores.length,
+          investidores: database.investidores.length
+        }
+      });
+    } else {
+      res.status(500).json({
+        error: 'Falha ao salvar dados restaurados'
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      error: 'Erro ao restaurar backup',
+      details: error.message
+    });
+  }
+});
+
 app.get('/api/health', (req, res) => {
-  res.json({ 
+  res.json({
     status: 'OK',
-    message: 'AmFi Matching API - Versão Mock',
+    message: 'AmFi Matching API - Sistema com Backup Automático',
     timestamp: new Date().toISOString(),
-    environment: 'mock'
+    environment: 'mock',
+    database_status: {
+      users: database.users?.length || 0,
+      originadores: database.originadores?.length || 0,
+      investidores: database.investidores?.length || 0
+    }
   });
 });
 
