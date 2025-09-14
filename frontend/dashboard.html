@@ -151,24 +151,6 @@
             background: #f9fafb;
         }
 
-        .match-score {
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-weight: bold;
-            color: white;
-        }
-
-        .match-score.high {
-            background: #10b981;
-        }
-
-        .match-score.medium {
-            background: #f59e0b;
-        }
-
-        .match-score.low {
-            background: #ef4444;
-        }
 
         .loading {
             text-align: center;
@@ -1145,7 +1127,6 @@
                                 <th>Investidor</th>
                                 <th>Tipo Ativo</th>
                                 <th>Volume</th>
-                                <th>Score</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1155,11 +1136,6 @@
                                     <td>${match.investidor.nome_investidor}</td>
                                     <td>${Array.isArray(match.originador.tipos_ativo) ? match.originador.tipos_ativo.join(', ') : match.originador.tipos_ativo || match.originador.tipo_ativo}</td>
                                     <td><span class="currency">R$ ${match.originador.volume_aprovado.toLocaleString('pt-BR')}</span></td>
-                                    <td>
-                                        <span class="match-score ${match.match_score >= 80 ? 'high' : match.match_score >= 60 ? 'medium' : 'low'}">
-                                            ${match.match_score}%
-                                        </span>
-                                    </td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -1226,7 +1202,6 @@
                             <th>Investidor</th>
                             <th>Tipo</th>
                             <th>Volume</th>
-                            <th>Score</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1236,11 +1211,6 @@
                                 <td>${match.investidor.nome_investidor}</td>
                                 <td>${Array.isArray(match.originador.tipos_ativo) ? match.originador.tipos_ativo.join(', ') : match.originador.tipos_ativo || match.originador.tipo_ativo}</td>
                                 <td><span class="currency">R$ ${match.originador.volume_aprovado.toLocaleString('pt-BR')}</span></td>
-                                <td>
-                                    <span class="match-score ${match.match_score >= 80 ? 'high' : match.match_score >= 60 ? 'medium' : 'low'}">
-                                        ${match.match_score}%
-                                    </span>
-                                </td>
                             </tr>
                         `).join('')}
                     </tbody>

@@ -173,44 +173,27 @@ app.get('/api/investidores', (req, res) => {
 });
 
 app.get('/api/matches', (req, res) => {
-  // Recalcular matches com nova lógica
+  // Calcular matches com lógica simplificada - sem score
   const newMatches = [];
   originadores.forEach(orig => {
     investidores.forEach(inv => {
-      // Verificar se há interseção entre os tipos de ativo
+      // 1. Verificar se há interseção entre os tipos de ativo
       const hasCommonAsset = orig.tipos_ativo.some(origAtivo =>
         inv.tipos_ativo.includes(origAtivo)
       );
 
-      // Verificar se volume aprovado >= volume mínimo do investidor
+      // 2. Verificar se volume aprovado >= volume mínimo do investidor
       const volumeMatch = orig.volume_aprovado >= inv.volume_minimo;
 
-      // Verificar se pelo menos uma das taxas atende ao critério
+      // 3. Verificar se pelo menos uma das taxas atende ao critério
       const taxaMatch = (orig.taxa_cdi_plus >= inv.taxa_minima_cdi_plus) ||
                        (orig.taxa_pre_fixada >= inv.taxa_minima_pre_fixada);
 
       // Match acontece quando TODOS os critérios são atendidos
       if (hasCommonAsset && volumeMatch && taxaMatch) {
-        // Calcular score baseado em quão bem os critérios são atendidos
-        let score = 60; // Score base
-
-        // Bônus por volume (quanto maior o volume, melhor)
-        const volumeRatio = orig.volume_aprovado / inv.volume_minimo;
-        if (volumeRatio >= 2) score += 15;
-        else if (volumeRatio >= 1.5) score += 10;
-        else if (volumeRatio >= 1.2) score += 5;
-
-        // Bônus por taxa
-        if (orig.taxa_cdi_plus >= inv.taxa_minima_cdi_plus + 1) score += 10;
-        if (orig.taxa_pre_fixada >= inv.taxa_minima_pre_fixada + 1) score += 10;
-
-        // Garantir que score não passe de 100
-        score = Math.min(score, 100);
-
         newMatches.push({
           originador: orig,
           investidor: inv,
-          match_score: score,
           criterios_atendidos: {
             ativo_compativel: hasCommonAsset,
             volume_suficiente: volumeMatch,
@@ -222,7 +205,7 @@ app.get('/api/matches', (req, res) => {
   });
 
   res.json({
-    message: 'Matches calculados com sucesso',
+    message: 'Matches encontrados com sucesso',
     matches: newMatches,
     total: newMatches.length
   });
