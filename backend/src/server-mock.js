@@ -43,8 +43,41 @@ function loadDatabase() {
             updated_at: new Date().toISOString()
           }
         ],
-        originadores: [],
-        investidores: []
+        originadores: [
+          {
+            id: 1,
+            nome_originador: "Price",
+            volume_aprovado: 1500000,
+            taxa_cdi_plus: 7.5,
+            taxa_pre_fixada: 0,
+            prazo: 24,
+            concentracao_cedente: 10,
+            concentracao_sacado: 10,
+            taxa_subordinacao: 20,
+            tipos_ativo: ["duplicatas"],
+            observacoes: "Para Catálise pode dobrar",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            created_by: 1,
+            updated_by: 1,
+            volume_atual_em_uso: 1250000
+          }
+        ],
+        investidores: [
+          {
+            id: 1,
+            nome_investidor: "Coruja",
+            tipos_ativo: ["duplicatas"],
+            volume_minimo: 1000000,
+            taxa_minima_cdi_plus: 6,
+            taxa_minima_pre_fixada: 0,
+            observacoes: "",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            created_by: 1,
+            updated_by: 1
+          }
+        ]
       };
 
       saveDatabase(initialData);
