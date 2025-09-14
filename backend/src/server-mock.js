@@ -61,6 +61,42 @@ function loadDatabase() {
             created_by: 1,
             updated_by: 1,
             volume_atual_em_uso: 1250000
+          },
+          {
+            id: 2,
+            nome_originador: "Faighus",
+            volume_aprovado: 5000000,
+            taxa_cdi_plus: 6.0,
+            taxa_pre_fixada: 0,
+            prazo: 30,
+            concentracao_cedente: 10,
+            concentracao_sacado: 10,
+            taxa_subordinacao: 20,
+            tipos_ativo: ["duplicatas"],
+            observacoes: "Pool #1 - R$ 1,25MM - Pool com resgate Para Catálise pode dobrar",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            created_by: 1,
+            updated_by: 1,
+            volume_atual_em_uso: 2250000
+          },
+          {
+            id: 3,
+            nome_originador: "C4",
+            volume_aprovado: 900000,
+            taxa_cdi_plus: 6.0,
+            taxa_pre_fixada: 0,
+            prazo: 30,
+            concentracao_cedente: 10,
+            concentracao_sacado: 10,
+            taxa_subordinacao: 20,
+            tipos_ativo: ["duplicatas"],
+            observacoes: "Pool #2 - R$ 600k - 1º aporte da Catálise (total aprovado R$ 1MM) Pool #3 - R$ 1,5MM - 1º aporte da Coruja (total aprovado R$ 5MM)",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            created_by: 1,
+            updated_by: 1,
+            volume_atual_em_uso: 2100000
           }
         ],
         investidores: [
