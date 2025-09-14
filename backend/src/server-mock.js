@@ -10,11 +10,11 @@ app.use(express.json());
 // Caminho para o arquivo de dados
 const DB_PATH = path.join(__dirname, '../data/database.json');
 
-// Função para carregar dados do arquivo COM PROTEÇÃO TOTAL
+// Função para carregar dados do arquivo COM PROTEÇÃO TOTAL E UTF-8
 function loadDatabase() {
   try {
     if (fs.existsSync(DB_PATH)) {
-      const data = fs.readFileSync(DB_PATH, 'utf8');
+      const data = fs.readFileSync(DB_PATH, { encoding: 'utf8' });
       const parsedData = JSON.parse(data);
 
       console.log('📂 Dados existentes carregados:');
@@ -65,7 +65,7 @@ function loadDatabase() {
         if (backupFiles.length > 0) {
           console.log(`🔄 RECUPERANDO do backup: ${backupFiles[0]}`);
           const backupPath = path.join(backupDir, backupFiles[0]);
-          const backupData = JSON.parse(fs.readFileSync(backupPath, 'utf8'));
+          const backupData = JSON.parse(fs.readFileSync(backupPath, { encoding: 'utf8' }));
 
           // Salvar dados recuperados
           fs.writeFileSync(DB_PATH, JSON.stringify(backupData, null, 2), 'utf8');
@@ -110,7 +110,7 @@ function createBackup(data) {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const backupPath = path.join(backupDir, `database-backup-${timestamp}.json`);
 
-    fs.writeFileSync(backupPath, JSON.stringify(data, null, 2), 'utf8');
+    fs.writeFileSync(backupPath, JSON.stringify(data, null, 2), { encoding: 'utf8' });
     console.log(`🛡️  BACKUP CRIADO: ${backupPath}`);
 
     // Manter apenas os últimos 10 backups
@@ -144,8 +144,8 @@ function saveDatabase(data) {
       fs.mkdirSync(dir, { recursive: true });
     }
 
-    // 3. Salvar dados principais
-    fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), 'utf8');
+    // 3. Salvar dados principais com UTF-8 explícito
+    fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), { encoding: 'utf8' });
     console.log(`💾 Dados salvos com sucesso! Originadores: ${data.originadores.length}, Investidores: ${data.investidores.length}`);
 
     return true;
@@ -573,7 +573,7 @@ app.get('/api/admin/backups', (req, res) => {
       .map(file => {
         const filePath = path.join(backupDir, file);
         const stats = fs.statSync(filePath);
-        const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        const data = JSON.parse(fs.readFileSync(filePath, { encoding: 'utf8' }));
 
         return {
           filename: file,
@@ -635,7 +635,7 @@ app.post('/api/admin/restore/:filename', (req, res) => {
       });
     }
 
-    const backupData = JSON.parse(fs.readFileSync(backupPath, 'utf8'));
+    const backupData = JSON.parse(fs.readFileSync(backupPath, { encoding: 'utf8' }));
 
     // Criar backup do estado atual antes de restaurar
     createBackup(database);
