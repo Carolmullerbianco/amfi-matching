@@ -488,7 +488,7 @@ app.listen(PORT, () => {
   console.log('✅ Pronto para receber conexões do frontend!');
   console.log('');
   console.log('🔐 Credenciais de teste:');
-  console.log('Email: carolmullerbianco@gmail.com');
-  console.log('Email: admin@amfi.finance');
-  console.log('Senha: 123456');
+  console.log('👑 ADMIN: carolmullerbianco@gmail.com');
+  console.log('📧 Outros: admin@amfi.finance');
+  console.log('🔑 Senha: 123456');
 });
