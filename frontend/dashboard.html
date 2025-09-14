@@ -53,9 +53,9 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 2rem auto;
-            padding: 0 2rem;
+            padding: 0 1rem;
         }
 
         .nav-tabs {
@@ -434,8 +434,8 @@
 
         .data-table {
             width: 100%;
-            min-width: 1400px;
-            table-layout: fixed;
+            min-width: 1200px;
+            table-layout: auto;
         }
 
         .table-wrapper {
@@ -492,40 +492,53 @@
             line-height: 1.25rem;
         }
 
+        .data-table th,
+        .data-table td {
+            padding: 0.5rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.875rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         .data-table th:first-child,
         .data-table td:first-child {
-            width: 120px;
-            min-width: 120px;
+            width: 140px;
+            max-width: 140px;
         }
 
         .data-table th:nth-child(n+2):nth-child(-n+4),
         .data-table td:nth-child(n+2):nth-child(-n+4) {
-            width: 120px;
-            min-width: 120px;
+            width: 110px;
+            max-width: 110px;
         }
 
         .data-table th:nth-child(n+5):nth-child(-n+10),
         .data-table td:nth-child(n+5):nth-child(-n+10) {
-            width: 80px;
-            min-width: 80px;
+            width: 70px;
+            max-width: 70px;
         }
 
         .data-table th:nth-child(11),
         .data-table td:nth-child(11) {
-            width: 150px;
-            min-width: 150px;
+            width: 120px;
+            max-width: 120px;
         }
 
         .data-table th:nth-child(12),
         .data-table td:nth-child(12) {
-            width: 200px;
-            min-width: 200px;
+            width: 150px;
+            max-width: 150px;
+            white-space: normal;
+            word-wrap: break-word;
         }
 
         .data-table th:last-child,
         .data-table td:last-child {
-            width: 120px;
-            min-width: 120px;
+            width: 100px;
+            max-width: 100px;
         }
     </style>
 </head>
