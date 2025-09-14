@@ -540,6 +540,70 @@
             width: 100px;
             max-width: 100px;
         }
+
+        .image-upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            margin-top: 0.5rem;
+            background-color: #f9fafb;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .image-upload-area:hover {
+            border-color: #8B5CF6;
+            background-color: #f3f4f6;
+        }
+
+        .image-upload-area.dragover {
+            border-color: #8B5CF6;
+            background-color: #ede9fe;
+        }
+
+        .uploaded-images {
+            margin-top: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .uploaded-image {
+            position: relative;
+            display: inline-block;
+        }
+
+        .uploaded-image img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #e5e7eb;
+        }
+
+        .remove-image {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ef4444;
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .paste-hint {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
     </style>
 </head>
 <body>
@@ -682,7 +746,16 @@
 
                     <div class="form-group full-width">
                         <label for="observacoes_orig">Observações</label>
-                        <textarea id="observacoes_orig" name="observacoes" placeholder="Observações, prints ou informações adicionais sobre o originador..."></textarea>
+                        <textarea id="observacoes_orig" name="observacoes" placeholder="Digite observações ou cole imagens aqui (Ctrl+V)..."></textarea>
+                        <div class="paste-hint">💡 Dica: Você pode colar imagens diretamente no campo de texto usando Ctrl+V</div>
+
+                        <div class="image-upload-area" onclick="document.getElementById('imageUpload_orig').click()">
+                            <p>📎 Clique aqui ou arraste imagens para anexar</p>
+                            <p style="font-size: 0.75rem; color: #9ca3af;">Formatos: PNG, JPG, GIF (máx. 5MB)</p>
+                        </div>
+                        <input type="file" id="imageUpload_orig" accept="image/*" multiple style="display: none;">
+
+                        <div id="uploadedImages_orig" class="uploaded-images"></div>
                     </div>
                 </div>
 
@@ -735,7 +808,16 @@
 
                     <div class="form-group full-width">
                         <label for="observacoes">Observações</label>
-                        <textarea id="observacoes" name="observacoes" placeholder="Observações adicionais sobre critérios de investimento..."></textarea>
+                        <textarea id="observacoes" name="observacoes" placeholder="Digite observações ou cole imagens aqui (Ctrl+V)..."></textarea>
+                        <div class="paste-hint">💡 Dica: Você pode colar imagens diretamente no campo de texto usando Ctrl+V</div>
+
+                        <div class="image-upload-area" onclick="document.getElementById('imageUpload_inv').click()">
+                            <p>📎 Clique aqui ou arraste imagens para anexar</p>
+                            <p style="font-size: 0.75rem; color: #9ca3af;">Formatos: PNG, JPG, GIF (máx. 5MB)</p>
+                        </div>
+                        <input type="file" id="imageUpload_inv" accept="image/*" multiple style="display: none;">
+
+                        <div id="uploadedImages_inv" class="uploaded-images"></div>
                     </div>
                 </div>
 
@@ -1515,10 +1597,231 @@
             }
         }
 
+        // =====================================================
+        // FUNCIONALIDADE DE UPLOAD DE IMAGENS
+        // =====================================================
+
+        // Array para armazenar imagens carregadas
+        let uploadedImages = {
+            orig: [],
+            inv: []
+        };
+
+        // Função para converter arquivo para Base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Função para validar tipo de arquivo
+        function isValidImageFile(file) {
+            const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
+            const maxSize = 5 * 1024 * 1024; // 5MB
+
+            if (!validTypes.includes(file.type)) {
+                alert('Formato de arquivo não suportado. Use PNG, JPG, GIF ou WebP.');
+                return false;
+            }
+
+            if (file.size > maxSize) {
+                alert('Arquivo muito grande. Máximo 5MB por imagem.');
+                return false;
+            }
+
+            return true;
+        }
+
+        // Função para adicionar imagem à lista
+        async function addImageToList(file, type) {
+            if (!isValidImageFile(file)) return;
+
+            try {
+                const base64 = await fileToBase64(file);
+                const imageData = {
+                    name: file.name,
+                    size: file.size,
+                    type: file.type,
+                    data: base64,
+                    id: Date.now() + Math.random()
+                };
+
+                uploadedImages[type].push(imageData);
+                updateImagePreview(type);
+            } catch (error) {
+                console.error('Erro ao processar imagem:', error);
+                alert('Erro ao processar imagem. Tente novamente.');
+            }
+        }
+
+        // Função para atualizar preview das imagens
+        function updateImagePreview(type) {
+            const container = document.getElementById(`uploadedImages_${type}`);
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            uploadedImages[type].forEach((img, index) => {
+                const imgDiv = document.createElement('div');
+                imgDiv.className = 'image-preview';
+                imgDiv.innerHTML = `
+                    <img src="${img.data}" alt="${img.name}" style="max-width: 100px; max-height: 100px; object-fit: cover; border-radius: 4px;">
+                    <div class="image-info">
+                        <span style="font-size: 0.75rem; color: #666;">${img.name}</span>
+                        <button type="button" onclick="removeImage('${type}', ${index})" style="background: #ef4444; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size: 0.7rem; cursor: pointer; margin-left: 8px;">×</button>
+                    </div>
+                `;
+                imgDiv.style.cssText = 'display: inline-block; margin: 5px; padding: 8px; border: 1px solid #e5e7eb; border-radius: 6px; background: #f9fafb;';
+                container.appendChild(imgDiv);
+            });
+
+            // Atualizar campo de observações com referências às imagens
+            const textarea = document.getElementById(`observacoes_${type}`);
+            if (textarea && uploadedImages[type].length > 0) {
+                const imageRefs = uploadedImages[type].map(img => `[Imagem: ${img.name}]`).join(' ');
+                if (!textarea.value.includes('[Imagem:')) {
+                    textarea.value = textarea.value + (textarea.value ? '\n\n' : '') + 'Imagens anexadas: ' + imageRefs;
+                }
+            }
+        }
+
+        // Função para remover imagem
+        window.removeImage = function(type, index) {
+            uploadedImages[type].splice(index, 1);
+            updateImagePreview(type);
+        }
+
+        // Configurar upload por clique
+        function setupFileUpload() {
+            // Originador
+            const uploadOrig = document.getElementById('imageUpload_orig');
+            if (uploadOrig) {
+                uploadOrig.addEventListener('change', function(e) {
+                    Array.from(e.target.files).forEach(file => {
+                        addImageToList(file, 'orig');
+                    });
+                    e.target.value = ''; // Limpar input
+                });
+            }
+
+            // Investidor
+            const uploadInv = document.getElementById('imageUpload_inv');
+            if (uploadInv) {
+                uploadInv.addEventListener('change', function(e) {
+                    Array.from(e.target.files).forEach(file => {
+                        addImageToList(file, 'inv');
+                    });
+                    e.target.value = ''; // Limpar input
+                });
+            }
+        }
+
+        // Configurar drag & drop
+        function setupDragAndDrop() {
+            const areas = [
+                { element: document.querySelector('.image-upload-area'), type: 'orig' },
+                { element: document.querySelectorAll('.image-upload-area')[1], type: 'inv' }
+            ];
+
+            areas.forEach(({ element, type }) => {
+                if (!element) return;
+
+                element.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    element.style.backgroundColor = '#e0e7ff';
+                    element.style.borderColor = '#8b5cf6';
+                });
+
+                element.addEventListener('dragleave', function(e) {
+                    e.preventDefault();
+                    element.style.backgroundColor = '#f9fafb';
+                    element.style.borderColor = '#d1d5db';
+                });
+
+                element.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    element.style.backgroundColor = '#f9fafb';
+                    element.style.borderColor = '#d1d5db';
+
+                    const files = Array.from(e.dataTransfer.files);
+                    files.forEach(file => {
+                        if (file.type.startsWith('image/')) {
+                            addImageToList(file, type);
+                        }
+                    });
+                });
+            });
+        }
+
+        // Configurar paste de imagens
+        function setupImagePaste() {
+            const textareas = ['observacoes_orig', 'observacoes_inv'];
+
+            textareas.forEach(id => {
+                const textarea = document.getElementById(id);
+                if (!textarea) return;
+
+                const type = id.includes('orig') ? 'orig' : 'inv';
+
+                textarea.addEventListener('paste', function(e) {
+                    const items = Array.from(e.clipboardData.items);
+
+                    items.forEach(item => {
+                        if (item.type.startsWith('image/')) {
+                            e.preventDefault();
+                            const file = item.getAsFile();
+                            if (file) {
+                                addImageToList(file, type);
+                            }
+                        }
+                    });
+                });
+            });
+        }
+
+        // Limpar imagens quando modal for fechado
+        function clearImages(type) {
+            uploadedImages[type] = [];
+            updateImagePreview(type);
+        }
+
+        // Configurar eventos quando modals são abertos
+        function setupModalEvents() {
+            // Interceptar abertura de modals para configurar upload
+            const originalOpenOriginador = window.openOriginadorModal;
+            const originalOpenInvestidor = window.openInvestidorModal;
+
+            window.openOriginadorModal = function(id) {
+                if (originalOpenOriginador) originalOpenOriginador(id);
+
+                setTimeout(() => {
+                    setupFileUpload();
+                    setupDragAndDrop();
+                    setupImagePaste();
+                    if (!id) clearImages('orig'); // Limpar apenas para novos
+                }, 100);
+            };
+
+            window.openInvestidorModal = function(id) {
+                if (originalOpenInvestidor) originalOpenInvestidor(id);
+
+                setTimeout(() => {
+                    setupFileUpload();
+                    setupDragAndDrop();
+                    setupImagePaste();
+                    if (!id) clearImages('inv'); // Limpar apenas para novos
+                }, 100);
+            };
+        }
+
         // Inicializar página
         document.addEventListener('DOMContentLoaded', function() {
             if (checkAuth()) {
                 loadDashboard();
+                setupModalEvents();
             }
         });
     </script>
