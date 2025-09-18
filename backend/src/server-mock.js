@@ -24,12 +24,12 @@ const DADOS_BASE_PROTEGIDOS = {
       concentracao_sacado: 10,
       taxa_subordinacao: 20,
       tipos_ativo: ["duplicatas"],
-      observacoes: "Para Catálise pode dobrar",
-      created_at: "2025-09-18T20:23:07.870Z",
-      updated_at: "2025-09-18T20:23:07.870Z",
+      observacoes: "Pool #1 - Catálise - R$ 750k e tem 450k disponíveis, mezanino - R$ 1,25 MM",
+      created_at: "2025-09-13T20:50:10.054Z",
+      updated_at: "2025-09-18T22:50:52.178Z",
       created_by: 1,
       updated_by: 1,
-      volume_atual_em_uso: 1250000
+      volume_atual_em_uso: 2000000
     },
     {
       id: 2,
@@ -42,9 +42,9 @@ const DADOS_BASE_PROTEGIDOS = {
       concentracao_sacado: 10,
       taxa_subordinacao: 20,
       tipos_ativo: ["duplicatas"],
-      observacoes: "Pool #1 - R$ 1,25MM - Pool com resgate Para Catálise pode dobrar",
+      observacoes: "Pool #1 - R$ 1,25MM - Mezanino e mais R$ 1 MM na senior",
       created_at: "2025-09-18T20:23:07.870Z",
-      updated_at: "2025-09-18T20:23:07.870Z",
+      updated_at: "2025-09-18T22:51:53.682Z",
       created_by: 1,
       updated_by: 1,
       volume_atual_em_uso: 2250000
