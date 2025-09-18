@@ -10,17 +10,130 @@ app.use(express.json());
 // Caminho para o arquivo de dados
 const DB_PATH = path.join(__dirname, '../data/database.json');
 
+// 🛡️ DADOS BASE PROTEGIDOS - NUNCA MAIS PERCA DADOS!
+const DADOS_BASE_PROTEGIDOS = {
+  originadores: [
+    {
+      id: 1,
+      nome_originador: "Price",
+      volume_aprovado: 1500000,
+      taxa_cdi_plus: 7.5,
+      taxa_pre_fixada: 0,
+      prazo: 24,
+      concentracao_cedente: 10,
+      concentracao_sacado: 10,
+      taxa_subordinacao: 20,
+      tipos_ativo: ["duplicatas"],
+      observacoes: "Para Catálise pode dobrar",
+      created_at: "2025-09-18T20:23:07.870Z",
+      updated_at: "2025-09-18T20:23:07.870Z",
+      created_by: 1,
+      updated_by: 1,
+      volume_atual_em_uso: 1250000
+    },
+    {
+      id: 2,
+      nome_originador: "Faighus",
+      volume_aprovado: 5000000,
+      taxa_cdi_plus: 6.0,
+      taxa_pre_fixada: 0,
+      prazo: 30,
+      concentracao_cedente: 10,
+      concentracao_sacado: 10,
+      taxa_subordinacao: 20,
+      tipos_ativo: ["duplicatas"],
+      observacoes: "Pool #1 - R$ 1,25MM - Pool com resgate Para Catálise pode dobrar",
+      created_at: "2025-09-18T20:23:07.870Z",
+      updated_at: "2025-09-18T20:23:07.870Z",
+      created_by: 1,
+      updated_by: 1,
+      volume_atual_em_uso: 2250000
+    },
+    {
+      id: 3,
+      nome_originador: "C4",
+      volume_aprovado: 900000,
+      taxa_cdi_plus: 6.0,
+      taxa_pre_fixada: 0,
+      prazo: 30,
+      concentracao_cedente: 10,
+      concentracao_sacado: 10,
+      taxa_subordinacao: 20,
+      tipos_ativo: ["duplicatas"],
+      observacoes: "Pool #2 - R$ 600k - 1º aporte da Catálise (total aprovado R$ 1MM) Pool #3 - R$ 1,5MM - 1º aporte da Coruja (total aprovado R$ 5MM)",
+      created_at: "2025-09-18T20:23:07.870Z",
+      updated_at: "2025-09-18T20:23:07.870Z",
+      created_by: 1,
+      updated_by: 1,
+      volume_atual_em_uso: 2100000
+    }
+  ],
+  investidores: [
+    {
+      id: 1,
+      nome_investidor: "Coruja",
+      tipos_ativo: ["duplicatas"],
+      volume_minimo: 1000000,
+      taxa_minima_cdi_plus: 6,
+      taxa_minima_pre_fixada: 0,
+      observacoes: "",
+      created_at: "2025-09-18T20:23:07.870Z",
+      updated_at: "2025-09-18T20:23:07.870Z",
+      created_by: 1,
+      updated_by: 1
+    }
+  ]
+};
+
+// 🛡️ FUNÇÃO DE PROTEÇÃO ABSOLUTA - GARANTE QUE OS DADOS BASE SEMPRE EXISTAM
+function garantirDadosBase(database) {
+  console.log('🛡️ VERIFICANDO PROTEÇÃO DOS DADOS BASE...');
+
+  // Garantir que Price, Faighus e C4 sempre existam
+  const nomesBase = ["Price", "Faighus", "C4"];
+  let dadosRecriados = false;
+
+  nomesBase.forEach(nome => {
+    const existe = database.originadores.find(o => o.nome_originador === nome);
+    if (!existe) {
+      const dadoBase = DADOS_BASE_PROTEGIDOS.originadores.find(o => o.nome_originador === nome);
+      if (dadoBase) {
+        console.log(`🔄 RECUPERANDO ${nome} - DADOS PROTEGIDOS`);
+        database.originadores.push({ ...dadoBase });
+        dadosRecriados = true;
+      }
+    }
+  });
+
+  // Garantir que Coruja sempre exista
+  if (!database.investidores.find(i => i.nome_investidor === "Coruja")) {
+    console.log('🔄 RECUPERANDO Coruja - DADOS PROTEGIDOS');
+    database.investidores.push({ ...DADOS_BASE_PROTEGIDOS.investidores[0] });
+    dadosRecriados = true;
+  }
+
+  if (dadosRecriados) {
+    console.log('✅ DADOS BASE RECUPERADOS COM SUCESSO!');
+    saveDatabase(database);
+  }
+
+  return database;
+}
+
 // Função para carregar dados do arquivo COM PROTEÇÃO TOTAL E UTF-8
 function loadDatabase() {
   try {
     if (fs.existsSync(DB_PATH)) {
       const data = fs.readFileSync(DB_PATH, { encoding: 'utf8' });
-      const parsedData = JSON.parse(data);
+      let parsedData = JSON.parse(data);
 
       console.log('📂 Dados existentes carregados:');
       console.log(`   👤 ${parsedData.users?.length || 0} usuários`);
       console.log(`   🏢 ${parsedData.originadores?.length || 0} originadores`);
       console.log(`   💰 ${parsedData.investidores?.length || 0} investidores`);
+
+      // 🛡️ APLICAR PROTEÇÃO ABSOLUTA
+      parsedData = garantirDadosBase(parsedData);
 
       return parsedData;
     } else {
@@ -43,77 +156,8 @@ function loadDatabase() {
             updated_at: new Date().toISOString()
           }
         ],
-        originadores: [
-          {
-            id: 1,
-            nome_originador: "Price",
-            volume_aprovado: 1500000,
-            taxa_cdi_plus: 7.5,
-            taxa_pre_fixada: 0,
-            prazo: 24,
-            concentracao_cedente: 10,
-            concentracao_sacado: 10,
-            taxa_subordinacao: 20,
-            tipos_ativo: ["duplicatas"],
-            observacoes: "Para Catálise pode dobrar",
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            created_by: 1,
-            updated_by: 1,
-            volume_atual_em_uso: 1250000
-          },
-          {
-            id: 2,
-            nome_originador: "Faighus",
-            volume_aprovado: 5000000,
-            taxa_cdi_plus: 6.0,
-            taxa_pre_fixada: 0,
-            prazo: 30,
-            concentracao_cedente: 10,
-            concentracao_sacado: 10,
-            taxa_subordinacao: 20,
-            tipos_ativo: ["duplicatas"],
-            observacoes: "Pool #1 - R$ 1,25MM - Pool com resgate Para Catálise pode dobrar",
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            created_by: 1,
-            updated_by: 1,
-            volume_atual_em_uso: 2250000
-          },
-          {
-            id: 3,
-            nome_originador: "C4",
-            volume_aprovado: 900000,
-            taxa_cdi_plus: 6.0,
-            taxa_pre_fixada: 0,
-            prazo: 30,
-            concentracao_cedente: 10,
-            concentracao_sacado: 10,
-            taxa_subordinacao: 20,
-            tipos_ativo: ["duplicatas"],
-            observacoes: "Pool #2 - R$ 600k - 1º aporte da Catálise (total aprovado R$ 1MM) Pool #3 - R$ 1,5MM - 1º aporte da Coruja (total aprovado R$ 5MM)",
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            created_by: 1,
-            updated_by: 1,
-            volume_atual_em_uso: 2100000
-          }
-        ],
-        investidores: [
-          {
-            id: 1,
-            nome_investidor: "Coruja",
-            tipos_ativo: ["duplicatas"],
-            volume_minimo: 1000000,
-            taxa_minima_cdi_plus: 6,
-            taxa_minima_pre_fixada: 0,
-            observacoes: "",
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            created_by: 1,
-            updated_by: 1
-          }
-        ]
+        originadores: [...DADOS_BASE_PROTEGIDOS.originadores],
+        investidores: [...DADOS_BASE_PROTEGIDOS.investidores]
       };
 
       saveDatabase(initialData);
