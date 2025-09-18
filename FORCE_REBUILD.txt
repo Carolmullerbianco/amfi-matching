@@ -1,0 +1,11 @@
+🛡️ FORÇA REBUILD COMPLETO - PROTEÇÃO DEFINITIVA DOS DADOS
+
+Timestamp: 2025-09-18T21:00:00.000Z
+
+Dados que DEVEM estar protegidos:
+- Price: R$ 1.500.000, CDI+ 7,5%
+- Faighus: R$ 5.000.000, CDI+ 6%
+- C4: R$ 900.000, CDI+ 6%
+- Coruja: R$ 1.000.000 mínimo, CDI+ 6%
+
+Sistema de proteção implementado no código!
